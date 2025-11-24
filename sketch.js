@@ -16,15 +16,15 @@ const palette = [
   "#B86C5E",
 ];
 
+const jointList = ["right-elbow", "right-hand", "right-knee", "right-foot"];
+
 // serial stuff
-let inData = 0; // for incoming serial data
 
 let serialBegan = false;
 
 function setup() {
   createCanvas(500, windowHeight);
 
-  // angleMode(RADIANS);
   noStroke();
   background("#f7f2eb");
 
@@ -55,8 +55,6 @@ function setup() {
 }
 
 function draw() {
-  // background("#f7f2eb");
-
   connectJoints(joints[1], joints[2]);
   connectJoints(joints[2], joints[3]);
   connectJoints(joints[4], joints[5]);
@@ -71,8 +69,6 @@ function draw() {
   for (const joint of joints) {
     joint.update();
   }
-
-  // connectJoints(joints[1], joints[2]);
 }
 
 function connectJoints(joint1, joint2) {
@@ -81,15 +77,26 @@ function connectJoints(joint1, joint2) {
   joint2.updatePos(joint1End.x, joint1End.y);
 }
 
-// read any incoming data as a string
-// (assumes a newline at the end of it):
 function serialEvent() {
   serialBegan = true;
-  // read a byte from the serial port, convert it to a number:
   const inString = serial.readLine();
   if (inString) {
-    inData = Number(inString);
-    select("#angles").html(inData);
+    const inData = inString.split(",");
+    const currentJoint = jointList[Number(inData[0])];
+
+    const deltaAng = Number(inData[1]);
+
+    select("#angles").html(`Joint ${currentJoint} angle: ${Number(inData[1])}`);
+
+    for (const joint of joints) {
+      if (joint.type === currentJoint) {
+        if (joint.type === "right-elbow") {
+          joint.newAng += deltaAng * 12;
+        } else {
+          joint.newAng -= deltaAng * 12;
+        }
+      }
+    }
   }
 }
 
@@ -119,7 +126,7 @@ class Joint {
     this.createDomElements();
 
     this.slider.input(() => {
-      this.newAng = map(this.slider.value(), 0, 24, 180, -180);
+      this.newAng = map(this.slider.value(), 0, 24, -180, 180);
     });
   }
 
@@ -187,15 +194,15 @@ class Joint {
     pop();
   }
 
-  draw() {
+  draw(pg) {
     this.updateSize();
-    this.fillColor.setAlpha(random(150, 255));
+    this.fillColor.setAlpha(random(2, 20));
 
     fill(this.fillColor);
     const endPos = this.getEndPos();
     ellipse(endPos.x, endPos.y, this.size);
 
-    this.fillColor.setAlpha(random(10, 100));
+    this.fillColor.setAlpha(random(2, 20));
     fill(this.fillColor);
 
     push();
