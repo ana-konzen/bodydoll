@@ -2,12 +2,14 @@ html,
 body {
   margin: 0;
   padding: 0;
-  /* background-color: #f7f2eb; */
+  background-color: #f7f2eb;
 }
 canvas {
   display: block;
   position: fixed;
-  left: calc(50vw - 250px);
+  /* left: calc(50vw - 250px); */
+  /* top: 300px; */
+  /* transform: scale(1.5); */
 }
 
 #slider-cont {
@@ -17,7 +19,7 @@ canvas {
   top: 50px;
   left: 20px;
   width: 180px;
-  display: flex;
+  display: none;
   flex-direction: column;
 }
 
@@ -25,4 +27,22 @@ canvas {
   width: 100%;
   display: flex;
   justify-content: space-between;
+}
+
+#angles {
+  display: none;
+}
+
+.ble-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 999;
 }

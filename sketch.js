@@ -16,33 +16,38 @@ const palette = [
   "#B86C5E",
 ];
 
-const jointList = ["right-elbow", "right-hand", "right-knee", "right-foot"];
-
-// serial stuff
-
-let serialBegan = false;
+const rightJointList = [
+  "right-elbow",
+  "right-hand",
+  "right-knee",
+  "right-foot",
+];
+const leftJointList = ["left-elbow", "left-hand", "left-knee", "left-foot"];
+const jointLists = [rightJointList, leftJointList];
 
 function setup() {
-  createCanvas(500, windowHeight);
+  createCanvas(windowWidth, windowHeight, WEBGL);
 
   noStroke();
   background("#f7f2eb");
 
+  // pixelDensity(1);
+
   joints = [
     new Joint("neck", 1, 50, true),
-    new Joint("left-shoulder", 70, 50),
-    new Joint("left-elbow", 10),
-    new Joint("left-hand"),
-    new Joint("right-shoulder", -70, 50),
-    new Joint("right-elbow", -10),
-    new Joint("right-hand"),
-    new Joint("center", 0, 200),
-    new Joint("left-hip", 70, 30),
-    new Joint("right-hip", -70, 30),
-    new Joint("left-knee", 0, 120),
-    new Joint("right-knee", 0, 120),
-    new Joint("left-foot", 0, 140),
-    new Joint("right-foot", 0, 140),
+    new Joint("left-shoulder", 70, 40),
+    new Joint("left-elbow", 10, 130),
+    new Joint("left-hand", 0, 150),
+    new Joint("right-shoulder", -70, 40),
+    new Joint("right-elbow", -10, 130),
+    new Joint("right-hand", 0, 150),
+    new Joint("center", 0, 240),
+    new Joint("left-hip", 70, 40),
+    new Joint("right-hip", -70, 40),
+    new Joint("left-knee", 0, 180),
+    new Joint("right-knee", 0, 180),
+    new Joint("left-foot", 0, 200),
+    new Joint("right-foot", 0, 200),
   ];
 
   joints[0].updatePos(width / 2, 100);
@@ -51,10 +56,12 @@ function setup() {
   connectJoints(joints[0], joints[4]);
   connectJoints(joints[0], joints[7]);
 
-  prepareSerial(serialEvent); // pass serialEvent as an argument
+  setupBLE();
 }
 
 function draw() {
+  updateJointsFromData();
+  translate(-width / 2, -height / 2);
   connectJoints(joints[1], joints[2]);
   connectJoints(joints[2], joints[3]);
   connectJoints(joints[4], joints[5]);
@@ -77,24 +84,57 @@ function connectJoints(joint1, joint2) {
   joint2.updatePos(joint1End.x, joint1End.y);
 }
 
-function serialEvent() {
-  serialBegan = true;
-  const inString = serial.readLine();
-  if (inString) {
-    const inData = inString.split(",");
-    const currentJoint = jointList[Number(inData[0])];
+function updateJointsFromData() {
+  if (incomingData.length === 3) {
+    console.log("Updating joints with incoming data:", incomingData);
+    const side = incomingData[0];
+    const encoder = incomingData[1];
+    const delta = incomingData[2];
 
-    const deltaAng = Number(inData[1]);
+    if (side === 2) {
+      joints[0].newAng += delta * 12;
+    } else {
+      updateJoins(side, encoder, delta);
+    }
 
-    select("#angles").html(`Joint ${currentJoint} angle: ${Number(inData[1])}`);
+    // Clear incoming data after processing
+    incomingData = [];
+  }
+}
 
-    for (const joint of joints) {
-      if (joint.type === currentJoint) {
-        if (joint.type === "right-elbow") {
-          joint.newAng += deltaAng * 12;
-        } else {
-          joint.newAng -= deltaAng * 12;
-        }
+function updateJoins(side, encoder, delta) {
+  const currentJoint = jointLists[side][encoder];
+  const direction = side === 0 ? 1 : -1;
+
+  const deltaAng = delta * direction;
+
+  select("#angles").html(`Joint ${currentJoint} angle: ${delta}`);
+
+  let nextJoint = null;
+
+  if (currentJoint === "right-elbow") {
+    nextJoint = "right-hand";
+  } else if (currentJoint === "left-elbow") {
+    nextJoint = "left-hand";
+  } else if (currentJoint === "right-knee") {
+    nextJoint = "right-foot";
+  } else if (currentJoint === "left-knee") {
+    nextJoint = "left-foot";
+  }
+
+  for (const joint of joints) {
+    if (
+      joint.type === currentJoint ||
+      (nextJoint && joint.type === nextJoint)
+    ) {
+      if (
+        joint.type === "right-elbow" ||
+        joint.type === "left-hand" ||
+        joint.type === "left-foot"
+      ) {
+        joint.newAng += deltaAng * 12;
+      } else {
+        joint.newAng -= deltaAng * 12;
       }
     }
   }
@@ -159,6 +199,10 @@ class Joint {
   }
 
   update() {
+    if (frameCount % 1000 === 0) {
+      this.color = color(random(palette));
+    }
+
     if (this.ang !== this.newAng) {
       // this.updateSize();
       this.fillColor = jitterColor(this.color);
@@ -185,10 +229,10 @@ class Joint {
     push();
     translate(this.x, this.y + this.length);
     rotate(radians(this.ang));
-    ellipse(0, -this.length, this.size);
+    // ellipse(0, -this.length, this.size);
 
     for (let i = 0; i < this.length; i++) {
-      ellipse(0, -i, random(1, 4));
+      ellipse(0, -i, random(4, 10));
     }
 
     pop();
@@ -200,7 +244,7 @@ class Joint {
 
     fill(this.fillColor);
     const endPos = this.getEndPos();
-    ellipse(endPos.x, endPos.y, this.size);
+    // ellipse(endPos.x, endPos.y, this.size);
 
     this.fillColor.setAlpha(random(2, 20));
     fill(this.fillColor);
@@ -210,7 +254,7 @@ class Joint {
     rotate(radians(this.ang));
 
     for (let i = 0; i < this.length; i++) {
-      ellipse(0, i, random(1, 4));
+      ellipse(0, i, random(4, 10));
     }
 
     pop();
