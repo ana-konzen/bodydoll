@@ -35,19 +35,19 @@ function setup() {
 
   joints = [
     new Joint("neck", 1, 50, true),
-    new Joint("left-shoulder", 80, 40),
-    new Joint("left-elbow", 10, 130),
-    new Joint("left-hand", 10, 150),
-    new Joint("right-shoulder", -80, 40),
-    new Joint("right-elbow", -10, 130),
-    new Joint("right-hand", -10, 150),
+    new Joint("left-shoulder", 80, 10),
+    new Joint("left-elbow", 35, 160),
+    new Joint("left-hand", 20, 180),
+    new Joint("right-shoulder", -80, 10),
+    new Joint("right-elbow", -35, 160),
+    new Joint("right-hand", -20, 180),
     new Joint("center", 0, 240),
-    new Joint("left-hip", 70, 40),
-    new Joint("right-hip", -70, 40),
-    new Joint("left-knee", 5, 180),
-    new Joint("right-knee", -5, 180),
-    new Joint("left-foot", 0, 200),
-    new Joint("right-foot", 0, 200),
+    new Joint("left-hip", 80, 10),
+    new Joint("right-hip", -80, 10),
+    new Joint("left-knee", 15, 200),
+    new Joint("right-knee", -15, 200),
+    new Joint("left-foot", 10, 220),
+    new Joint("right-foot", -10, 220),
   ];
 
   joints[0].updatePos(width / 2, 100);
@@ -78,10 +78,10 @@ function draw() {
   }
 
   // fade after some time
-  if (frameCount % 100 === 0) {
-    fill("#f7f2eb20");
-    rect(0, 0, width, height);
-  }
+  // if (frameCount % 200 === 0) {
+  //   fill("#f7f2eb10");
+  //   rect(0, 0, width, height);
+  // }
 }
 
 function connectJoints(joint1, joint2) {
@@ -141,19 +141,19 @@ function updateJoins(side, encoder, delta) {
       ) {
         if (joint.type === currentJoint) {
           if (joint.type !== "right-hand") {
-            joint.newAng += deltaAng * 12;
+            joint.newAng += deltaAng * 18;
           } else {
-            joint.newAng -= deltaAng * 12;
+            joint.newAng -= deltaAng * 18;
           }
         } else {
           if (joint.type !== "right-elbow" && joint.type !== "right-hand") {
-            joint.newAng -= deltaAng * 12;
+            joint.newAng -= deltaAng * 18;
           } else {
-            joint.newAng += deltaAng * 12;
+            joint.newAng += deltaAng * 18;
           }
         }
       } else {
-        joint.newAng -= deltaAng * 12;
+        joint.newAng -= deltaAng * 18;
       }
     }
   }
@@ -241,7 +241,7 @@ class Joint {
   }
 
   drawInverse() {
-    this.fillColor.setAlpha(random(10, 100));
+    this.fillColor.setAlpha(random(2, 10));
 
     fill(this.fillColor);
 
@@ -257,15 +257,15 @@ class Joint {
     pop();
   }
 
-  draw(pg) {
+  draw() {
     this.updateSize();
-    this.fillColor.setAlpha(random(2, 20));
+    this.fillColor.setAlpha(random(2, 10));
 
     fill(this.fillColor);
     const endPos = this.getEndPos();
     // ellipse(endPos.x, endPos.y, this.size);
 
-    this.fillColor.setAlpha(random(2, 20));
+    this.fillColor.setAlpha(random(2, 10));
     fill(this.fillColor);
 
     push();
