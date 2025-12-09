@@ -23,7 +23,7 @@ const rightJointList = [
   "right-foot",
 ];
 const leftJointList = ["left-elbow", "left-hand", "left-knee", "left-foot"];
-const jointLists = [rightJointList, leftJointList];
+const jointLists = [leftJointList, rightJointList];
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
@@ -35,17 +35,17 @@ function setup() {
 
   joints = [
     new Joint("neck", 1, 50, true),
-    new Joint("left-shoulder", 70, 40),
+    new Joint("left-shoulder", 80, 40),
     new Joint("left-elbow", 10, 130),
-    new Joint("left-hand", 0, 150),
-    new Joint("right-shoulder", -70, 40),
+    new Joint("left-hand", 10, 150),
+    new Joint("right-shoulder", -80, 40),
     new Joint("right-elbow", -10, 130),
-    new Joint("right-hand", 0, 150),
+    new Joint("right-hand", -10, 150),
     new Joint("center", 0, 240),
     new Joint("left-hip", 70, 40),
     new Joint("right-hip", -70, 40),
-    new Joint("left-knee", 0, 180),
-    new Joint("right-knee", 0, 180),
+    new Joint("left-knee", 5, 180),
+    new Joint("right-knee", -5, 180),
     new Joint("left-foot", 0, 200),
     new Joint("right-foot", 0, 200),
   ];
@@ -76,6 +76,12 @@ function draw() {
   for (const joint of joints) {
     joint.update();
   }
+
+  // fade after some time
+  if (frameCount % 100 === 0) {
+    fill("#f7f2eb20");
+    rect(0, 0, width, height);
+  }
 }
 
 function connectJoints(joint1, joint2) {
@@ -92,7 +98,7 @@ function updateJointsFromData() {
     const delta = incomingData[2];
 
     if (side === 2) {
-      joints[0].newAng += delta * 12;
+      joints[0].newAng -= delta * 20;
     } else {
       updateJoins(side, encoder, delta);
     }
@@ -104,7 +110,7 @@ function updateJointsFromData() {
 
 function updateJoins(side, encoder, delta) {
   const currentJoint = jointLists[side][encoder];
-  const direction = side === 0 ? 1 : -1;
+  const direction = side === 0 ? -1 : 1;
 
   const deltaAng = delta * direction;
 
@@ -129,10 +135,23 @@ function updateJoins(side, encoder, delta) {
     ) {
       if (
         joint.type === "right-elbow" ||
+        joint.type === "right-hand" ||
         joint.type === "left-hand" ||
         joint.type === "left-foot"
       ) {
-        joint.newAng += deltaAng * 12;
+        if (joint.type === currentJoint) {
+          if (joint.type !== "right-hand") {
+            joint.newAng += deltaAng * 12;
+          } else {
+            joint.newAng -= deltaAng * 12;
+          }
+        } else {
+          if (joint.type !== "right-elbow" && joint.type !== "right-hand") {
+            joint.newAng -= deltaAng * 12;
+          } else {
+            joint.newAng += deltaAng * 12;
+          }
+        }
       } else {
         joint.newAng -= deltaAng * 12;
       }

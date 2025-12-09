@@ -131,20 +131,10 @@ void handleEncoder(int side, Adafruit_seesaw &ss, int32_t enc_positions[]) {
 
     int32_t new_enc_position = ss.getEncoderPosition(e);
 
-    // did we move around?
     if (enc_positions[e] != new_enc_position) {
-      // Serial.print("Encoder #");
       int32_t posDelta = new_enc_position - enc_positions[e];
       sendData(side, e, posDelta);
-
-
-      // Serial.print(side);  // 0 is right, 1 is left
-      // Serial.print(",");
-      // Serial.print(e);
-      // Serial.print(",");
-      // Serial.println(posDelta);             // display new position
-      enc_positions[e] = new_enc_position;  // and save for next round
-    }
+      enc_positions[e] = new_enc_position;  
   }
 }
 
@@ -154,8 +144,6 @@ void handleNeck() {
 
   if (neck_pos != neck_oldpos) {
     int pos_delta = neck_pos - neck_oldpos;
-    // Serial.print("2,0,");
-    // Serial.println(pos_delta);
     sendData(2, 0, pos_delta);
     neck_oldpos = neck_pos;
   }
@@ -169,11 +157,6 @@ void handleLeftEncoder(EncoderStepCounter &encoder, int index) {
 
   if (left_enc_positions[index] != encPos) {
     int posDelta = encPos - left_enc_positions[index];
-    // Serial.print(1);
-    // Serial.print(",");
-    // Serial.print(index);
-    // Serial.print(",");
-    // Serial.println(posDelta);
 
     sendData(1, index, posDelta);
 

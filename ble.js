@@ -9,9 +9,9 @@ function setupBLE() {
   myBLE = new p5ble();
 
   // Connect button
-  const connectButton = createButton("Connect & Start Notifications").addClass(
-    "ble-button"
-  );
+  const connectButton = createButton("Connect")
+    .addClass("ble-button")
+    .addClass("disconnected");
   connectButton.mousePressed(connectAndStartNotifications);
 
   // Optional: disconnect button
@@ -22,6 +22,10 @@ function setupBLE() {
 function handleDisconnect() {
   console.log("Device disconnected");
   isConnected = false;
+  const connectButton = select(".ble-button");
+  connectButton.removeClass("connected");
+  connectButton.addClass("disconnected");
+  connectButton.html("Connect");
 }
 
 function disconnectFromBle() {
@@ -50,4 +54,8 @@ function gotCharacteristics(error, characteristics) {
   myBLE.onDisconnected(handleDisconnect);
 
   isConnected = true;
+  const connectButton = select(".ble-button");
+  connectButton.removeClass("disconnected");
+  connectButton.addClass("connected");
+  connectButton.html("Connected");
 }
