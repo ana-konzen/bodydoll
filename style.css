@@ -48,8 +48,10 @@ canvas {
 
 .disconnected {
   background-color: #333;
+  display: block;
 }
 
 .connected {
   background-color: #4caf50;
+  display: none;
 }

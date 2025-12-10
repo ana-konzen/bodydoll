@@ -61,7 +61,7 @@ function setup() {
 
 function draw() {
   updateJointsFromData();
-  translate(-width / 2, -height / 2);
+  translate(-width / 2, -height / 2 + 100);
   connectJoints(joints[1], joints[2]);
   connectJoints(joints[2], joints[3]);
   connectJoints(joints[4], joints[5]);
