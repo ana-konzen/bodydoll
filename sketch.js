@@ -25,8 +25,13 @@ const rightJointList = [
 const leftJointList = ["left-elbow", "left-hand", "left-knee", "left-foot"];
 const jointLists = [leftJointList, rightJointList];
 
+const trails = [];
+
+let trail;
+
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
+  trails.push(new Trail());
 
   noStroke();
   background("#f7f2eb");
@@ -59,9 +64,19 @@ function setup() {
   setupBLE();
 }
 
+function keyPressed() {
+  if (key === "r") {
+    clear();
+    background("#f7f2eb");
+    trails[0].pg.clear();
+  }
+}
+
 function draw() {
   updateJointsFromData();
-  translate(-width / 2, -height / 2 + 100);
+  translate(-width / 2, -height / 2);
+  background("#f7f2eb");
+
   connectJoints(joints[1], joints[2]);
   connectJoints(joints[2], joints[3]);
   connectJoints(joints[4], joints[5]);
@@ -73,14 +88,23 @@ function draw() {
   connectJoints(joints[10], joints[12]);
   connectJoints(joints[11], joints[13]);
 
-  for (const joint of joints) {
-    joint.update();
+  // push();
+  // fill(247, 242, 235, 5);
+  // rect(0, 0, width, height);
+  // pop();
+  for (const trail of trails) {
+    trail.display();
+    // trail.update();
   }
 
-  // fade after some time
-  // if (frameCount % 200 === 0) {
-  //   fill("#f7f2eb10");
-  //   rect(0, 0, width, height);
+  // for (let i = trails.length - 1; i >= 0; i--) {
+  //   if (trails[i].isDead()) {
+  //     trails.splice(i, 1);
+  //   }
+  // }
+
+  // for (const joint of joints) {
+  //   joint.update();
   // }
 }
 
@@ -100,15 +124,17 @@ function updateJointsFromData() {
     if (side === 2) {
       joints[0].newAng -= delta * 20;
     } else {
-      updateJoins(side, encoder, delta);
+      updateJoints(side, encoder, delta);
     }
+
+    // trails.push(new Trail());
 
     // Clear incoming data after processing
     incomingData = [];
   }
 }
 
-function updateJoins(side, encoder, delta) {
+function updateJoints(side, encoder, delta) {
   const currentJoint = jointLists[side][encoder];
   const direction = side === 0 ? -1 : 1;
 
@@ -217,7 +243,7 @@ class Joint {
     this.updateSize();
   }
 
-  update() {
+  update(pg) {
     if (frameCount % 1000 === 0) {
       this.color = color(random(palette));
     }
@@ -233,49 +259,77 @@ class Joint {
       );
       this.size = n * 30;
       if (this.inverse) {
-        this.drawInverse();
+        this.drawInverse(pg);
       } else {
-        this.draw();
+        this.draw(pg);
       }
     }
   }
 
-  drawInverse() {
+  drawInverse(pg) {
     this.fillColor.setAlpha(random(2, 10));
 
-    fill(this.fillColor);
+    pg.fill(this.fillColor);
 
-    push();
-    translate(this.x, this.y + this.length);
-    rotate(radians(this.ang));
+    pg.push();
+    pg.translate(this.x, this.y + this.length);
+    pg.rotate(radians(this.ang));
     // ellipse(0, -this.length, this.size);
 
     for (let i = 0; i < this.length; i++) {
-      ellipse(0, -i, random(4, 10));
+      pg.ellipse(0, -i, random(4, 10));
     }
 
-    pop();
+    pg.pop();
   }
 
-  draw() {
+  draw(pg) {
     this.updateSize();
     this.fillColor.setAlpha(random(2, 10));
 
-    fill(this.fillColor);
-    const endPos = this.getEndPos();
+    pg.fill(this.fillColor);
+    // const endPos = this.getEndPos();
     // ellipse(endPos.x, endPos.y, this.size);
 
     this.fillColor.setAlpha(random(2, 10));
-    fill(this.fillColor);
+    pg.fill(this.fillColor);
 
-    push();
-    translate(this.x, this.y);
-    rotate(radians(this.ang));
+    pg.push();
+    pg.translate(this.x, this.y);
+    pg.rotate(radians(this.ang));
 
     for (let i = 0; i < this.length; i++) {
-      ellipse(0, i, random(4, 10));
+      pg.ellipse(0, i, random(4, 10));
     }
 
-    pop();
+    pg.pop();
+  }
+}
+
+class Trail {
+  constructor() {
+    this.pg = createGraphics(windowWidth, windowHeight);
+    this.lifetime = 255;
+    this.pg.noStroke();
+    // this.pg.pixelDensity(1);
+  }
+
+  update() {
+    this.lifetime -= 2;
+  }
+
+  isDead() {
+    return this.lifetime <= 0;
+  }
+
+  display() {
+    this.pg.push();
+    this.pg.translate(0, 100);
+    for (const joint of joints) {
+      joint.update(this.pg);
+    }
+    tint(255, this.lifetime);
+    this.pg.pop();
+    image(this.pg, 0, 0);
   }
 }
