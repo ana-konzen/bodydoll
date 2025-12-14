@@ -324,7 +324,7 @@ class Trail {
 
   display() {
     this.pg.push();
-    this.pg.translate(0, 100);
+    this.pg.translate(0, 200);
     for (const joint of joints) {
       joint.update(this.pg);
     }
